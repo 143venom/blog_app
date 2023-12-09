@@ -41,9 +41,12 @@ class UserListCreateView(GenericAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['username', 'email']
+    search_fields = ['username', 'email']
 
     def get(self, request):
-        profile_objects = self.get_queryset()
+        profile_objects = self.filter_queryset(self.get_queryset())
         serializer = UserSerializer(profile_objects, many=True)
         return Response({'data': serializer.data})
 
