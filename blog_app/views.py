@@ -256,3 +256,5 @@ class LikeDetailView(GenericAPIView):
         self.check_object_permissions(request, user_profile_object)
         user_profile_object.delete()
         return Response({'message': 'Data deleted successfull'})
+        
+        

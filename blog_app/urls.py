@@ -13,5 +13,6 @@ urlpatterns = [
     path('comments/', CommentListCreateView.as_view(), name='comment-list'),
     path('comments/<int:pk>/', CommentDetailView.as_view(), name='comment-detail'),
     path('likes/', LikeListCreateView.as_view(), name='like-list'),
-    path('likes/<int:pk>/', LikeDetailView.as_view(), name='like-detail'),
+    path('likes/', LikeListCreateView.as_view(), name='like-list'),
+    # path('activity-feed/', ActivityFeedView.as_view(), name='activity-feed'),
 ]
