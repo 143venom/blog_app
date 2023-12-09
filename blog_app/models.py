@@ -54,15 +54,4 @@ class Like(models.Model):
 
     def __str__(self):
         return f"{self.user} liked {self.post}"
-    
-class Friendship(models.Model):
-    user = models.ForeignKey(User, related_name='friendships', on_delete=models.CASCADE)
-    friend = models.ForeignKey(User, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(null=True, auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.user} friend {self.friend}"
-    
-    def get_friends(self):
-        return User.objects.filter(friend_friendships__user=self.user)
 
