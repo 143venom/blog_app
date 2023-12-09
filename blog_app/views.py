@@ -256,5 +256,35 @@ class LikeDetailView(GenericAPIView):
         self.check_object_permissions(request, user_profile_object)
         user_profile_object.delete()
         return Response({'message': 'Data deleted successfull'})
+
+class ActivityFeedView(GenericAPIView):
+    serializer_class = serializers.Serializer
+    permission_classes = [IsAuthenticated]
+
+    def get_serializer_class(self):
+        activity_type = self.request.query_params.get('type')
+
+        if activity_type == 'comments':
+            return CommentSerializer
+        elif activity_type == 'likes':
+            return LikeSerializer
+        else:
+            return PostSerializer
+
+    def data_activity(self):
+        user = self.request.user
+        friends = Friendship.objects.filter(user=user).values_list('friend', flat=True)
+        posts = Post.objects.filter(user__in=friends).order_by('-created_at')[:5]
+        # posts = Post.objects.filter().order_by('-created_at')[:3]
+        comments = Comment.objects.filter(user__in=friends).order_by('-created_at')[:5]
+        likes = Like.objects.filter(user__in=friends).order_by('-id')[:5]
+        merged_activity = sorted(list(posts) + list(comments) + list(likes), key=lambda instance: getattr(instance, 'created_at', instance.id), reverse=True)
+        return merged_activity
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.data_activity()
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(queryset, many=True)
+        return Response({'data':serializer.data})
         
         
