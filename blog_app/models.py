@@ -26,6 +26,10 @@ class Profile(models.Model):
     def __str__(self):
         return self.full_name
     
+    def id(self):
+        return self.id
+    
+    
 class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=200, blank=False)

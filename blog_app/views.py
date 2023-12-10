@@ -12,7 +12,7 @@ from .permissions import CustomModelPermission, IsOwnerOrReadOnly
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 
-
+# user register
 @api_view(['POST'])
 def register(request):
     password = request.data.get('password')
@@ -25,7 +25,7 @@ def register(request):
     else:
         return Response({'error': serializer.errors})
 
-
+# user login
 @api_view(['POST'])
 def login(request):
     email = request.data.get('email')
@@ -37,6 +37,7 @@ def login(request):
         token, _ = Token.objects.get_or_create(user=user)
         return Response({'token': token.key})
     
+# user list and posting user
 class UserListCreateView(GenericAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -50,13 +51,13 @@ class UserListCreateView(GenericAPIView):
         serializer = UserSerializer(profile_objects, many=True)
         return Response({'data': serializer.data})
 
-    def post(self, request):
-        serializer = UserSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'data': serializer.data})
-        return Response({'error':serializer.errors})
-
+    # def post(self, request):
+    #     serializer = UserSerializer(data=request.data)
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return Response({'data': serializer.data})
+    #     return Response({'error':serializer.errors})
+# getting user detail 
 class UserDetailView(GenericAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -81,7 +82,7 @@ class UserDetailView(GenericAPIView):
         self.check_object_permissions(request, user_profile_object)
         user_profile_object.delete()
         return Response({'message': 'Data deleted successfull'})
-
+# getting profile list and posting user profile
 class ProfileListCreateView(GenericAPIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
@@ -102,6 +103,7 @@ class ProfileListCreateView(GenericAPIView):
             return Response({'data': serializer.data})
         return Response({'error':serializer.errors})
 
+# getting Detail profile list and posting user profile
 class ProfileDetailView(GenericAPIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
@@ -126,7 +128,7 @@ class ProfileDetailView(GenericAPIView):
         self.check_object_permissions(request, user_profile_object)
         user_profile_object.delete()
         return Response({'message': 'Data deleted successfull'})
-    
+    #creating post and retiveing all post
 class PostListCreateView(GenericAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
@@ -146,7 +148,7 @@ class PostListCreateView(GenericAPIView):
             serializer.save()
             return Response({'data': "post created successfully"})
         return Response({'error':serializer.errors})
-
+# get singal post detail, update , delete
 class PostDetailView(GenericAPIView):
     queryset = Profile.objects.all()
     serializer_class = PostSerializer
@@ -172,7 +174,7 @@ class PostDetailView(GenericAPIView):
         user_profile_object.delete()
         return Response({'message': 'Data deleted successfull'})
 
-
+#creating commet and retiveing all comment
 class CommentListCreateView(GenericAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
@@ -192,7 +194,7 @@ class CommentListCreateView(GenericAPIView):
             serializer.save()
             return Response({'data': serializer.data})
         return Response({'error':serializer.errors})
-
+# get singal comment detail, update , delete
 class CommentDetailView(GenericAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
@@ -217,7 +219,7 @@ class CommentDetailView(GenericAPIView):
         self.check_object_permissions(request, user_profile_object)
         user_profile_object.delete()
         return Response({'message': 'Data deleted successfull'})
-    
+    # Retiveing all like
 class LikeListCreateView(GenericAPIView):
     queryset = Like.objects.all()
     serializer_class = LikeSerializer
@@ -234,7 +236,7 @@ class LikeListCreateView(GenericAPIView):
             serializer.save()
             return Response({'data': serializer.data})
         return Response({'error':serializer.errors})
-
+# Retriving singal like
 class LikeDetailView(GenericAPIView):
     queryset = Like.objects.all()
     serializer_class = LikeSerializer
@@ -264,30 +266,42 @@ class ActivityFeedView(GenericAPIView):
     serializer_class = serializers.Serializer
     permission_classes = [IsAuthenticated]
 
-    def get_serializer_class(self):
-        activity_type = self.request.query_params.get('type')
+    # def get_serializer_class(self):
+    #     activity_type = self.request.query_params.get('type')
 
-        if activity_type == 'comments':
-            return CommentSerializer
-        elif activity_type == 'likes':
-            return LikeSerializer
-        else:
-            return PostSerializer
+    #     if activity_type == 'comments':
+    #         return CommentSerializer
+    #     elif activity_type == 'likes':
+    #         return LikeSerializer
+    #     else:
+    #         return PostSerializer
 
-    def data_activity(self):
-        user = self.request.user
-        friends = Friendship.objects.filter(user=user).values_list('friend', flat=True)
-        posts = Post.objects.filter(user__in=friends).order_by('-created_at')[:5]
-        # posts = Post.objects.filter().order_by('-created_at')[:3]
-        comments = Comment.objects.filter(user__in=friends).order_by('-created_at')[:5]
-        likes = Like.objects.filter(user__in=friends).order_by('-id')[:5]
-        merged_activity = sorted(list(posts) + list(comments) + list(likes), key=lambda instance: getattr(instance, 'created_at', instance.id), reverse=True)
-        return merged_activity
+    # def getPosts(self,friends):
+    #     posts = Post.objects.filter(user__in=friends).all()[:5]
+    #     postSerializer = PostSerializer(posts, many=True)
+    #     return postSerializer.data
+    
+    
 
     def get(self, request, *args, **kwargs):
-        queryset = self.data_activity()
-        serializer_class = self.get_serializer_class()
-        serializer = serializer_class(queryset, many=True)
-        return Response({'data':serializer.data})
+        user = self.request.user
+        # print(user)
+        friends = Friendship.objects.filter(user=user).values_list('friend', flat=True)
+        # Posts
+        posts = Post.objects.filter(user__in=friends).order_by('-created_at')[:5]
+        postSerializer = PostSerializer(posts, many=True)
+        # Comment
+        comments = Comment.objects.filter(user__in=friends).order_by('-created_at')[:5]
+        commentSerializer = CommentSerializer(comments, many=True)
+        # Likes
+        likes = Like.objects.filter(user__in=friends).order_by('-created_at')[:5]
+        likeSerializer = LikeSerializer(likes, many=True)
+
+       
+        return Response({
+            'posts':postSerializer.data,
+            'comments':commentSerializer.data,
+            'likes':likeSerializer.data,
+        })
         
         

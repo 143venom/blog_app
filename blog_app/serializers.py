@@ -12,13 +12,13 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['email', 'password']
+        fields = '__all__'
 
 class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ['title', 'content', 'created_at']
+        fields = ['id','title', 'content', 'created_at']
 
 class CommentSerializer(serializers.ModelSerializer):
 
@@ -27,8 +27,10 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = ('id','post', 'text', 'created_at')
 
 class LikeSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
+    # user = UserSerializer()
+    # post = PostSerializer()
+
 
     class Meta:
         model = Like
-        fields = ('id', 'user', 'content_type','created_at', 'object_id', 'content_object')
+        fields = ('object_id','id','user_id','post_id','content_type')
