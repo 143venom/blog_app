@@ -28,14 +28,14 @@ class CustomModelPermission(permissions.BasePermission):
         return request.user.has_perm(full_perm)
     
 class IsOwnerOrReadOnly(permissions.BasePermission):
-    messsage = 'you must be the owner of this object'
-    my_safe_method = ['put']
-    def has_permission(self, request, view):
-        if request.method in self.my_safe_method:
-            return True
-        return False
+    # messsage = 'you must be the owner of this object'
+    # my_safe_method = ['put']
+    # def has_permission(self, request, view):
+    #     if request.method in self.my_safe_method:
+    #         return True
+    #     return False
 
     def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS:
+        if request.method in SAFE_METHODS:
             return True
         return obj.user == request.user   

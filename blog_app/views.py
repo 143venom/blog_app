@@ -8,7 +8,7 @@ from .serializers import *
 from django.contrib.auth.hashers import make_password
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
-from .permissions import CustomModelPermission, IsOwnerOrReadOnly
+from .permissions import IsOwnerOrReadOnly, CustomModelPermission
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 
@@ -21,9 +21,10 @@ def register(request):
     serializer = UserSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
-        return Response({'data': 'User Created!'})
+        return Response({'message': 'Registration successfully'})
     else:
         return Response({'error': serializer.errors})
+    
 
 # user login
 @api_view(['POST'])
@@ -32,10 +33,11 @@ def login(request):
     password = request.data.get('password')
     user = authenticate(username=email, password=password)
     if user is None:
-        return Response('User not found in Database')
+        return Response({'message':'User not found in Database'})
     else:
         token, _ = Token.objects.get_or_create(user=user)
         return Response({'token': token.key})
+    
     
 # user list and posting user
 class UserListCreateView(GenericAPIView):
@@ -57,11 +59,12 @@ class UserListCreateView(GenericAPIView):
     #         serializer.save()
     #         return Response({'data': serializer.data})
     #     return Response({'error':serializer.errors})
+    
 # getting user detail 
 class UserDetailView(GenericAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
         user_profile_object = User.objects.get(id=pk)
@@ -70,18 +73,22 @@ class UserDetailView(GenericAPIView):
 
     def put(self, request, pk):
         user_profile_object = User.objects.get(id=pk)
+        # checking isownerorreadonly to perform update operation
         self.check_object_permissions(request, user_profile_object)
         serializer = self.get_serializer(user_profile_object, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({'data': "Profile Updated Successfull"})
+            return Response({'message': "Profile Updated Successfull"})
         return Response({'error':serializer.errors})
 
     def delete(self, request, pk):
         user_profile_object = User.objects.get(id=pk)
+        # checking isownerorreadonly to perform delete operation
         self.check_object_permissions(request, user_profile_object)
         user_profile_object.delete()
         return Response({'message': 'Data deleted successfull'})
+    
+    
 # getting profile list and posting user profile
 class ProfileListCreateView(GenericAPIView):
     queryset = Profile.objects.all()
@@ -102,6 +109,7 @@ class ProfileListCreateView(GenericAPIView):
             serializer.save()
             return Response({'data': serializer.data})
         return Response({'error':serializer.errors})
+    
 
 # getting Detail profile list and posting user profile
 class ProfileDetailView(GenericAPIView):
@@ -116,19 +124,23 @@ class ProfileDetailView(GenericAPIView):
 
     def put(self, request, pk):
         user_profile_object = Profile.objects.get(id=pk)
+        # checking isownerorreadonly to perform update operation
         self.check_object_permissions(request, user_profile_object)
         serializer = self.get_serializer(user_profile_object, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({'data': "Profile Updated Successfull"})
+            return Response({'message': "Profile Updated Successfull"})
         return Response({'error':serializer.errors})
 
     def delete(self, request, pk):
         user_profile_object = Profile.objects.get(id=pk)
+        # checking isownerorreadonly to perform delete operation
         self.check_object_permissions(request, user_profile_object)
         user_profile_object.delete()
         return Response({'message': 'Data deleted successfull'})
-    #creating post and retiveing all post
+    
+    
+#creating post and retiveing all post
 class PostListCreateView(GenericAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
@@ -138,8 +150,8 @@ class PostListCreateView(GenericAPIView):
     search_fields = ['title', 'content']
 
     def get(self, request):
-        profile_objects = self.filter_queryset(self.get_queryset())
-        serializer = PostSerializer(profile_objects, many=True)
+        post_objects = self.filter_queryset(self.get_queryset())
+        serializer = PostSerializer(post_objects, many=True)
         return Response({'data': serializer.data})
 
     def post(self, request):
@@ -148,31 +160,35 @@ class PostListCreateView(GenericAPIView):
             serializer.save()
             return Response({'data': "post created successfully"})
         return Response({'error':serializer.errors})
+    
+
 # get singal post detail, update , delete
 class PostDetailView(GenericAPIView):
-    queryset = Profile.objects.all()
+    queryset_model = Post
+    queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
     def get(self, request, pk):
-        user_profile_object = Post.objects.get(id=pk)
-        serializer = self.get_serializer(user_profile_object)
+        post_objects = Post.objects.get(id=pk)
+        serializer = self.get_serializer(post_objects)
         return Response({'data': serializer.data})
 
     def put(self, request, pk):
-        user_profile_object = Post.objects.get(id=pk)
-        self.check_object_permissions(request, user_profile_object)
-        serializer = self.get_serializer(user_profile_object, data=request.data)
+        post_objects = Post.objects.get(id=pk)
+        self.check_object_permissions(request, post_objects)
+        serializer = self.get_serializer(post_objects, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response({'data': "Post Updated Successfull"})
         return Response({'error':serializer.errors})
 
     def delete(self, request, pk):
-        user_profile_object = Post.objects.get(id=pk)
-        self.check_object_permissions(request, user_profile_object)
-        user_profile_object.delete()
+        post_objects = Post.objects.get(id=pk)
+        self.check_object_permissions(request, post_objects)
+        post_objects.delete()
         return Response({'message': 'Data deleted successfull'})
+    
 
 #creating commet and retiveing all comment
 class CommentListCreateView(GenericAPIView):
@@ -184,8 +200,8 @@ class CommentListCreateView(GenericAPIView):
     search_fields = ['post', 'text']
 
     def get(self, request):
-        profile_objects = self.filter_queryset(self.get_queryset())
-        serializer = CommentSerializer(profile_objects, many=True)
+        comment_objects = self.filter_queryset(self.get_queryset())
+        serializer = CommentSerializer(comment_objects, many=True)
         return Response({'data': serializer.data})
 
     def post(self, request):
@@ -194,6 +210,8 @@ class CommentListCreateView(GenericAPIView):
             serializer.save()
             return Response({'data': serializer.data})
         return Response({'error':serializer.errors})
+    
+    
 # get singal comment detail, update , delete
 class CommentDetailView(GenericAPIView):
     queryset = Comment.objects.all()
@@ -201,33 +219,37 @@ class CommentDetailView(GenericAPIView):
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
     def get(self, request, pk):
-        user_profile_object = Comment.objects.get(id=pk)
-        serializer = self.get_serializer(user_profile_object)
+        comment_objects = Comment.objects.get(id=pk)
+        serializer = self.get_serializer(comment_objects)
         return Response({'data': serializer.data})
 
     def put(self, request, pk):
-        user_profile_object = Comment.objects.get(id=pk)
-        self.check_object_permissions(request, user_profile_object)
-        serializer = self.get_serializer(user_profile_object, data=request.data)
+        comment_objects = Comment.objects.get(id=pk)
+        # checking isownerorreadonly to perform update operation
+        self.check_object_permissions(request, comment_objects)
+        serializer = self.get_serializer(comment_objects, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({'data': "comment Updated Successfully!"})
+            return Response({'message': "comment Updated Successfully!"})
         return Response({'error':serializer.errors})
 
     def delete(self, request, pk):
-        user_profile_object = Comment.objects.get(id=pk)
-        self.check_object_permissions(request, user_profile_object)
-        user_profile_object.delete()
+        comment_objects = Comment.objects.get(id=pk)
+        # checking isownerorreadonly to perform delete operation
+        self.check_object_permissions(request, comment_objects)
+        comment_objects.delete()
         return Response({'message': 'Data deleted successfull'})
-    # Retiveing all like
+    
+    
+# Retiveing all like
 class LikeListCreateView(GenericAPIView):
     queryset = Like.objects.all()
     serializer_class = LikeSerializer
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        profile_objects = self.get_queryset()
-        serializer = LikeSerializer(profile_objects, many=True)
+        like_Objects = self.get_queryset()
+        serializer = LikeSerializer(like_Objects, many=True)
         return Response({'data': serializer.data})
 
     def post(self, request):
@@ -236,6 +258,8 @@ class LikeListCreateView(GenericAPIView):
             serializer.save()
             return Response({'data': serializer.data})
         return Response({'error':serializer.errors})
+    
+    
 # Retriving singal like
 class LikeDetailView(GenericAPIView):
     queryset = Like.objects.all()
@@ -243,38 +267,32 @@ class LikeDetailView(GenericAPIView):
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
     def get(self, request, pk):
-        user_profile_object = Like.objects.get(id=pk)
-        serializer = self.get_serializer(user_profile_object)
+        like_objects = Like.objects.get(id=pk)
+        serializer = self.get_serializer(like_objects)
         return Response({'data': serializer.data})
 
     def put(self, request, pk):
-        user_profile_object = Like.objects.get(id=pk)
-        self.check_object_permissions(request, user_profile_object)
-        serializer = self.get_serializer(user_profile_object, data=request.data)
+        like_objects = Like.objects.get(id=pk)
+        # checking isownerorreadonly to perform update operation
+        self.check_object_permissions(request, like_objects)
+        serializer = self.get_serializer(like_objects, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({'data': "Profile Updated Successfull"})
+            return Response({'message': "Profile Updated Successfull"})
         return Response({'error':serializer.errors})
 
     def delete(self, request, pk):
-        user_profile_object = Like.objects.get(id=pk)
-        self.check_object_permissions(request, user_profile_object)
-        user_profile_object.delete()
+        like_objects = Like.objects.get(id=pk)
+        # checking isownerorreadonly to perform delete operation
+        self.check_object_permissions(request, like_objects)
+        like_objects.delete()
         return Response({'message': 'Data deleted successfull'})
-
+    
+        
+#implementing activity feed which retrive recent post, comment, like, from friends
 class ActivityFeedView(GenericAPIView):
     serializer_class = serializers.Serializer
     permission_classes = [IsAuthenticated]
-
-    # def get_serializer_class(self):
-    #     activity_type = self.request.query_params.get('type')
-
-    #     if activity_type == 'comments':
-    #         return CommentSerializer
-    #     elif activity_type == 'likes':
-    #         return LikeSerializer
-    #     else:
-    #         return PostSerializer
 
     # def getPosts(self,friends):
     #     posts = Post.objects.filter(user__in=friends).all()[:5]
@@ -287,13 +305,13 @@ class ActivityFeedView(GenericAPIView):
         user = self.request.user
         # print(user)
         friends = Friendship.objects.filter(user=user).values_list('friend', flat=True)
-        # Posts
+        # retriving 2 recently posted  
         posts = Post.objects.filter(user__in=friends).order_by('-created_at')[:5]
         postSerializer = PostSerializer(posts, many=True)
-        # Comment
+        # retriving 2 recently commented 
         comments = Comment.objects.filter(user__in=friends).order_by('-created_at')[:5]
         commentSerializer = CommentSerializer(comments, many=True)
-        # Likes
+        # retriving 2 recently liked 
         likes = Like.objects.filter(user__in=friends).order_by('-created_at')[:5]
         likeSerializer = LikeSerializer(likes, many=True)
 
