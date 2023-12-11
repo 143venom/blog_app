@@ -158,7 +158,7 @@ class PostListCreateView(GenericAPIView):
         serializer = PostSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({'data': "post created successfully"})
+            return Response({'message': "post created successfully"})
         return Response({'error':serializer.errors})
     
 
@@ -180,7 +180,7 @@ class PostDetailView(GenericAPIView):
         serializer = self.get_serializer(post_objects, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({'data': "Post Updated Successfull"})
+            return Response({'message': "Post Updated Successfull"})
         return Response({'error':serializer.errors})
 
     def delete(self, request, pk):
@@ -256,37 +256,8 @@ class LikeListCreateView(GenericAPIView):
         serializer = LikeSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({'data': serializer.data})
+            return Response({'message': serializer.data})
         return Response({'error':serializer.errors})
-    
-    
-# Retriving singal like
-class LikeDetailView(GenericAPIView):
-    queryset = Like.objects.all()
-    serializer_class = LikeSerializer
-    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
-
-    def get(self, request, pk):
-        like_objects = Like.objects.get(id=pk)
-        serializer = self.get_serializer(like_objects)
-        return Response({'data': serializer.data})
-
-    def put(self, request, pk):
-        like_objects = Like.objects.get(id=pk)
-        # checking isownerorreadonly to perform update operation
-        self.check_object_permissions(request, like_objects)
-        serializer = self.get_serializer(like_objects, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'message': "Profile Updated Successfull"})
-        return Response({'error':serializer.errors})
-
-    def delete(self, request, pk):
-        like_objects = Like.objects.get(id=pk)
-        # checking isownerorreadonly to perform delete operation
-        self.check_object_permissions(request, like_objects)
-        like_objects.delete()
-        return Response({'message': 'Data deleted successfull'})
     
         
 #implementing activity feed which retrive recent post, comment, like, from friends

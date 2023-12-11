@@ -8,29 +8,34 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = ['full_name', 'address', 'bio']
 
 class UserSerializer(serializers.ModelSerializer):
-    # profile = ProfileSerializer()
+    profile = ProfileSerializer()
 
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ['id','email','profile']
 
 class PostSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
 
     class Meta:
         model = Post
-        fields = ['id','title', 'content', 'created_at']
+        fields = ['id','title','content','created_at','user']
 
 class CommentSerializer(serializers.ModelSerializer):
+    post = PostSerializer()
 
     class Meta:
         model = Comment
         fields = ('id','post', 'text', 'created_at')
 
 class LikeSerializer(serializers.ModelSerializer):
-    # user = UserSerializer()
-    # post = PostSerializer()
-
-
+    post = PostSerializer()
     class Meta:
         model = Like
-        fields = ('object_id','id','user_id','post_id','content_type')
+        fields = ('object_id','id','content_type','post')
+# class LikeSerializer(serializers.ModelSerializer):
+#     # user = UserSerializer()
+#     # post = PostSerializer()
+#     class Meta:
+#         model = Like
+#         fields = ('object_id','id','user_id','post_id','content_type')
