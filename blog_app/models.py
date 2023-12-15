@@ -34,6 +34,7 @@ class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=200, blank=False)
     content = models.TextField()
+    # likes = models.ManyToManyField(User, related_name='post')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

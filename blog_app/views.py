@@ -171,6 +171,11 @@ class PostDetailView(GenericAPIView):
 
     def get(self, request, pk):
         post_objects = Post.objects.get(id=pk)
+        # msg = False
+        # if request.user.is_authenticated:
+        #     user = request.user
+        # if post_objects.likes.filter(id=user.id).exists():
+        #     msg = True
         serializer = self.get_serializer(post_objects)
         return Response({'data': serializer.data})
 
@@ -258,6 +263,36 @@ class LikeListCreateView(GenericAPIView):
             serializer.save()
             return Response({'message': serializer.data})
         return Response({'error':serializer.errors})
+    
+
+# class LikePostView(GenericAPIView):
+#     serializer_class = LikeSerializer
+#     permission_classes = [IsAuthenticated]
+
+#     def post(self, request, *args, **kwargs):
+#         post_id = self.request.data.get('id')
+#         post = Post.objects.get(id=post_id)
+#         checker = None
+
+#         if post.likes.filter(id=request.user.id).exists():
+#             post.likes.remove(request.user)
+#             checker = 0
+#         else:
+#             post.likes.add(request.user)
+#             checker = 1
+
+#         likes = post.likes.count()
+#         like_instance = Like.objects.get_or_create(content_type=post.get_content_type(), object_id=post.id, user=request.user)[0]
+#         like_serializer = self.get_serializer(like_instance)
+#         serialized_like = like_serializer.data
+
+#         info = {
+#             "check": checker,
+#             "num_of_likes": likes,
+#             "like": serialized_like
+#         }
+
+#         return Response(info)
     
         
 #implementing activity feed which retrive recent post, comment, like, from friends
